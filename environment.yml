@@ -1,0 +1,23 @@
+name: trunk
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.9
+  - setuptools
+  - pip
+  - wheel
+  - omegaconf
+  - wandb
+  - seaborn
+  - matplotlib
+  - scipy
+  - pip:
+    - --index-url https://download.pytorch.org/whl/cu118
+    - numpy
+    - torch
+    - torchvision
+    - tqdm
+    - torch-pruning
+    - git+https://github.com/Lyken17/pytorch-OpCounter.git
+    - git+https://github.com/xflr6/graphviz.git
