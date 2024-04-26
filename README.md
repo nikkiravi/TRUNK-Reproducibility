@@ -14,9 +14,8 @@ models through case studies. This approach combines rigorous documentation stand
 and a comprehensive guide of best practices. By implementing these strategies, we aim to bridge the gap between research
 and practice, ensuring that innovations in computer vision can be effectively reproduced and deployed.
 
-This github repository contains all the code used to generate the results mentioned or displayed in the aforementioned paper, divided into three directories:
+This github repository contains all the code used to generate the results mentioned or displayed in the aforementioned paper, divided into two directories:
 - LPCV Background: Contains the code used to introduce LPCV techniques mentioned in the background section of the paper
-- Monolithic Architectures: Contains the code used to compare the TRUNK architecture against well-known monolithic architectures such as ConvNeXt, DinoV2, MobileNetv2, ResNet, ResNet Quantized, VGG Pruned, VGG, and ViT
 - TRUNK: Contains the code for training and testing the TRUNK network, as well as the pre-trained models
 
 ## Installation

@@ -10,4 +10,3 @@ matplotlib
 thop
 graphviz
 scipy
-torch-pruning
