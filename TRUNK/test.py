@@ -85,7 +85,7 @@ def get_model(dataloader, current_supergroup):
         checkpoint = torch.load(path_to_current_sg_weights, map_location=device)
         model.load_state_dict(checkpoint['model_state_dict'])
         model = model.to(device)
-    else:
+    else: # This is for the pre-trained weights provided, if re-trained, comment this out and use the if-condition block
         model.load_state_dict(torch.load(path_to_current_sg_weights, map_location=device))
         model = model.to(device)
 
