@@ -8,6 +8,8 @@
 # Import necessary libraries
 from torchvision import datasets
 from torchvision import transforms
+from PIL import Image
+import gzip
 import numpy as np
 import torch
 import json
@@ -133,7 +135,7 @@ class GenerateDataset(torch.utils.data.Dataset):
 
 		what is a target_map? Here is an example of TRUNK tree:
 		
-		     |root|
+			 |root|
 			/       \
 		|node 0|      |node 1|
 		/     \       /        \
@@ -274,7 +276,7 @@ class GenerateDataset(torch.utils.data.Dataset):
 		Return
 		------
 		num_class_per_sg: dict
-        	dictionary mapping each node and the number of classes they are responsible for
+			dictionary mapping each node and the number of classes they are responsible for
 		"""
 
 		path_to_tree = os.path.join(self.path_to_outputs, "tree.pkl")
@@ -288,7 +290,7 @@ class GenerateDataset(torch.utils.data.Dataset):
 		------
 		leafs: dict
 			dictionary of leaf nodes and its respective path from the root node
-    	"""
+		"""
 
 		path_to_tree = os.path.join(self.path_to_outputs, "tree.pkl")
 		return get_leaf_nodes(path_to_tree)
@@ -409,44 +411,44 @@ class GenerateDataset(torch.utils.data.Dataset):
 	
 class Cutout(object):
 	# Obtained from: https://github.com/uoguelph-mlrg/Cutout/tree/master
-    """Randomly mask out one or more patches from an image.
+	"""Randomly mask out one or more patches from an image.
 
-    Args:
-        n_holes (int): Number of patches to cut out of each image.
-        length (int): The length (in pixels) of each square patch.
-    """
-    def __init__(self, n_holes, length):
-        self.n_holes = n_holes
-        self.length = length
+	Args:
+		n_holes (int): Number of patches to cut out of each image.
+		length (int): The length (in pixels) of each square patch.
+	"""
+	def __init__(self, n_holes, length):
+		self.n_holes = n_holes
+		self.length = length
 
-    def __call__(self, img):
-        """
-        Args:
-            img (Tensor): Tensor image of size (C, H, W).
-        Returns:
-            Tensor: Image with n_holes of dimension length x length cut out of it.
-        """
-        h = img.size(1)
-        w = img.size(2)
+	def __call__(self, img):
+		"""
+		Args:
+			img (Tensor): Tensor image of size (C, H, W).
+		Returns:
+			Tensor: Image with n_holes of dimension length x length cut out of it.
+		"""
+		h = img.size(1)
+		w = img.size(2)
 
-        mask = np.ones((h, w), np.float32)
+		mask = np.ones((h, w), np.float32)
 
-        for n in range(self.n_holes):
-            y = np.random.randint(h)
-            x = np.random.randint(w)
+		for n in range(self.n_holes):
+			y = np.random.randint(h)
+			x = np.random.randint(w)
 
-            y1 = np.clip(y - self.length // 2, 0, h)
-            y2 = np.clip(y + self.length // 2, 0, h)
-            x1 = np.clip(x - self.length // 2, 0, w)
-            x2 = np.clip(x + self.length // 2, 0, w)
+			y1 = np.clip(y - self.length // 2, 0, h)
+			y2 = np.clip(y + self.length // 2, 0, h)
+			x1 = np.clip(x - self.length // 2, 0, w)
+			x2 = np.clip(x + self.length // 2, 0, w)
 
-            mask[y1: y2, x1: x2] = 0.
+			mask[y1: y2, x1: x2] = 0.
 
-        mask = torch.from_numpy(mask)
-        mask = mask.expand_as(img)
-        img = img * mask
+		mask = torch.from_numpy(mask)
+		mask = mask.expand_as(img)
+		img = img * mask
 
-        return img
+		return img
 
 def build_transforms(transform_config):
 	"""
@@ -476,6 +478,47 @@ def build_transforms(transform_config):
 			transform_list.append(transform_class(**params))
 
 	return transforms.Compose(transform_list)
+
+class EMNIST(torch.utils.data.Dataset):
+	def __init__(self, root, split, train, download, transform):
+		self.transform = transform
+		self.root = root
+		self.split = split
+		self.train = train
+
+		if(self.train):
+			images = os.path.join(self.root, "emnist-balanced-train-images-idx3-ubyte.gz")
+			labels = os.path.join(self.root, 'emnist-balanced-train-labels-idx1-ubyte.gz')
+		else:
+			images = os.path.join(self.root, 'emnist-balanced-test-images-idx3-ubyte.gz')
+			labels = os.path.join(self.root, 'emnist-balanced-test-labels-idx1-ubyte.gz')
+		
+		self.images = self.read_images(images)
+		self.labels = self.read_labels(labels)
+		
+	def read_images(self, filepath):
+		with gzip.open(filepath, 'rb') as f:
+			f.read(16)  # skip the header
+			data = f.read()  # read the rest of the data
+		data = np.frombuffer(data, dtype=np.uint8)
+		return data.reshape(-1, 28, 28).transpose((0, 2, 1))  # EMNIST images are transposed
+
+	def read_labels(self, filepath):
+		with gzip.open(filepath, 'rb') as f:
+			f.read(8)  # skip the header
+			labels = f.read()
+		labels = np.frombuffer(labels, dtype=np.uint8)
+		return labels
+	
+	def __len__(self):
+		return len(self.labels)
+
+	def __getitem__(self, index):
+		img = Image.fromarray(self.images[index], mode='L')
+		if self.transform is not None:
+			img = self.transform(img)
+
+		return img, self.labels[index]
 
 def load_dataset(dataset, config, train=False, validation=False):
 	"""
@@ -512,7 +555,15 @@ def load_dataset(dataset, config, train=False, validation=False):
 	if(train):
 		if(validation):
 			if(dataset == "emnist"):
-				return datasets.EMNIST(
+				try: # This is if torchvision's emnist dataset api for emnist still does not work
+					return datasets.EMNIST(
+								root=f"{path_to_data}/test/",
+								split="balanced",
+								train=False,
+								download=True,
+								transform=transform)
+				except Exception as e:
+					return EMNIST(
 							root=f"{path_to_data}/test/",
 							split="balanced",
 							train=False,
@@ -533,13 +584,20 @@ def load_dataset(dataset, config, train=False, validation=False):
 
 		else:
 			if(dataset == "emnist"):
+				try:
 					return datasets.EMNIST(
-									root=f"{path_to_data}/train",
-									split="balanced",
-									train=True,
-									download=True,
-									transform=transform
-							)
+								root=f"{path_to_data}/train",
+								split="balanced",
+								train=True,
+								download=True,
+								transform=transform)
+				except Exception as e:
+					return EMNIST(
+								root=f"{path_to_data}/train",
+								split="balanced",
+								train=True,
+								download=True,
+								transform=transform)
 			
 			elif(dataset == "svhn"):
 					return datasets.SVHN(root=f"{path_to_data}/train/",
@@ -555,12 +613,20 @@ def load_dataset(dataset, config, train=False, validation=False):
 		 
 	else:
 		if(dataset == "emnist"):
-			return datasets.EMNIST(
+			try:
+				return datasets.EMNIST(
 							root=f"{path_to_data}/test/",
 							split="balanced",
 							train=False,
 							download=True,
 							transform=transform)
+			except Exception as e:
+				return EMNIST(
+						root=f"{path_to_data}/test/",
+						split="balanced",
+						train=False,
+						download=True,
+						transform=transform)
 
 		elif(dataset == "svhn"):
 			return datasets.SVHN(root=f"{path_to_data}/test/",
