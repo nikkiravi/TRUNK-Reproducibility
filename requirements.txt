@@ -1,4 +1,4 @@
---find-links https://download.pytorch.org/whl/cu118
+--find-links https://download.pytorch.org/whl/cu121
 numpy
 torch
 torchvision
