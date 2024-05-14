@@ -13,7 +13,7 @@ The implementations provided in this repository requires a python version 3.9.18
 [conda][1] (**Recommended**) - clone the repository and then activate the mnn conda environment using the provided environment definition
 ```bash
 conda env create -f environment.yml
-conda activate mnn
+conda activate trunk
 ```
 
 [pip][2] - clone the repository and then install the dependencies using the provided command
