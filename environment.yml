@@ -1,22 +1,19 @@
 name: trunk
 channels:
+  - pytorch
+  - nvidia
   - defaults
-  - conda-forge
 dependencies:
-  - python=3.9
-  - setuptools
-  - pip
-  - wheel
-  - omegaconf
-  - wandb
-  - seaborn
-  - matplotlib
-  - scipy
+  - numpy
+  - python=3.9.18=h955ad1f_0
+  - pytorch=2.3.0=py3.9_cuda12.1_cudnn8.9.2_0
+  - pytorch-cuda=12.1=ha16c6d3_5
+  - torchvision=0.18.0=py39_cu121
   - pip:
-    - --index-url https://download.pytorch.org/whl/cu121
-    - numpy
-    - torch
-    - torchvision
+    - matplotlib
+    - omegaconf
+    - scipy
+    - seaborn
+    - thop
     - tqdm
-    - git+https://github.com/Lyken17/pytorch-OpCounter.git
-    - git+https://github.com/xflr6/graphviz.git
+    - wandb
