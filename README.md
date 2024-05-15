@@ -8,7 +8,7 @@ This github repository contains all the code used to generate the results mentio
 - TRUNK: Contains the code for training and testing the TRUNK network, as well as the pre-trained models
 
 ## Installation
-The implementations provided in this repository requires a python version 3.9.18, a PyTorch version 2.1 with CUDA 12.1, and other 3rd party packages. To setup the required dependencies to reproduce the results of this repository, follow these instructions
+The implementations provided in this repository requires a python version 3.9.18, a PyTorch version 2.3 with CUDA 12.1, and other 3rd party packages. To setup the required dependencies to reproduce the results of this repository, follow these instructions
 
 [conda][1] (**Recommended**) - clone the repository and then activate the mnn conda environment using the provided environment definition
 ```bash
