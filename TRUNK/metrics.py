@@ -201,12 +201,12 @@ def visualize_tree(path_to_outputs, root, graph=None):
     else:
         node_color = "#77DD77"
 
-    graph.node(node_value, label="", style='filled', fillcolor=node_color)
+    graph.node(node_value, label=node_value, style='filled', fillcolor=node_color)
     for child in root.children:
         graph.edge(str(root.value), str(child.value))
         visualize_tree(path_to_outputs, child, graph)
     
-    save_path = f"{path_to_outputs}/tree_visual2"
+    save_path = f"{path_to_outputs}/tree_visual"
     graph.render(save_path, format='png', cleanup=True)
 
 def num_operations(path_to_category, dataset, dict_inputs, label):
