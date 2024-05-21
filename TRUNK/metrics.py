@@ -8,6 +8,7 @@
 # Import necessary libraries
 from thop import profile
 import os
+import re
 import torch
 import argparse
 import graphviz
@@ -165,6 +166,13 @@ def update_leaf_names(nodes_dict, inverse_category_encoding, tree_path):
             node.value = inverse_category_encoding[int(leaf_name_mapping[node_value])]
     return nodes_dict
 
+def check_supergroup(node_value):
+    pattern = r"(sg)([0-9]+)"
+    if(re.match(pattern, node_value)):
+        return True
+
+    return False
+
 def visualize_tree(path_to_outputs, root, graph=None):
     """
     Create a png image visualizing the tree
@@ -184,12 +192,21 @@ def visualize_tree(path_to_outputs, root, graph=None):
     if graph is None:
         graph = graphviz.Digraph()
     
-    graph.node(str(root.value))
+    node_value = str(root.value)
+    node_color = ""
+    if(node_value == "root"):
+        node_color = "#FF6961"
+    elif(check_supergroup(node_value)):
+        node_color = "#AEC6CF"
+    else:
+        node_color = "#77DD77"
+
+    graph.node(node_value, label="", style='filled', fillcolor=node_color)
     for child in root.children:
         graph.edge(str(root.value), str(child.value))
         visualize_tree(path_to_outputs, child, graph)
     
-    save_path = f"{path_to_outputs}/tree_visual"
+    save_path = f"{path_to_outputs}/tree_visual2"
     graph.render(save_path, format='png', cleanup=True)
 
 def num_operations(path_to_category, dataset, dict_inputs, label):
@@ -326,6 +343,7 @@ if __name__ == "__main__":
 
         if(args.visualize):
             visualize_tree(dataset.path_to_outputs, nodes_dict["root"])
+            quit()
     
         longest_path = longest_path_down_tree(nodes_dict["root"])
         shortest_path = shortest_path_down_tree(nodes_dict["root"])
